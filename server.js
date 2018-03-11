@@ -14,28 +14,33 @@ app.use(bodyParser.urlencoded({
 app.use(express.static('public'));
 app.use(require('express-session')({
 	secret: process.env.SESSION_SECRET,
-	resave: false,
+	resave: true,
 	saveUninitialized: true
 }));
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.get('/', function (request, response) {
-	response.sendFile(__dirname + '/views/index.html');
-});
-
 app.get('/auth/twitter', passport.authenticate('twitter'));
 app.get('/auth/twitter/callback', 
-	passport.authenticate('twitter'),
+	passport.authenticate('twitter', { failureRedirect: '/login' }),
 	function(req, res) {
 		res.redirect('/');
 	});
 app.get('/auth/github', passport.authenticate('github'));
 app.get('/auth/github/callback', 
-	passport.authenticate('github'),
+	passport.authenticate('github', { failureRedirect: '/login' }),
 	function(req, res) {
 		res.redirect('/');
 	});
+
+app.get('/logout', function(req, res) {
+	req.logout();
+	res.redirect('/');
+});
+
+app.get(['/', '*'], function (request, response) {
+	response.sendFile(__dirname + '/views/index.html');
+});
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
